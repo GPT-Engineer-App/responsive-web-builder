@@ -4,21 +4,32 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Menu } from "lucide-react";
-import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { navItems } from "../App";
 
 const Layout = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
-      <Sidebar />
+    <div className={cn("grid min-h-screen w-full", isMobile ? "" : "md:grid-cols-[280px_1fr]")}>
+      {!isMobile && <Sidebar />}
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-6 lg:h-[60px]">
-          <MobileSidebar />
+          {isMobile && <MobileSidebar />}
           <h1 className="font-semibold text-lg">Team Marc Agents Tools</h1>
         </header>
         <main className="flex-grow p-6 overflow-auto">
@@ -72,16 +83,27 @@ const Sidebar = () => (
 
 const MobileSidebar = () => {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="md:hidden">
-          <Menu className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[80%] sm:w-[350px] pr-0">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold">Menu</h2>
+          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
         <nav className="grid gap-2 text-lg font-medium mt-4 pr-6">
           {navItems.map((item, index) => (
             item.submenu ? (
